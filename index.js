@@ -1,5 +1,5 @@
 var express = require('express')
-var model = require('./model.js')()
+var model = require('./model.js')
 var api = require('./api')(express, model)
 
 var app = express();
