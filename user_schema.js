@@ -21,7 +21,11 @@ var birdSchema = require('./bird_schema').birdSchema
         required: true
       }
     },
-    birds: [{bird: mongoose.Schema.Types.ObjectId}]
+    birds: [{
+      bird: {
+        type: mongoose.Schema.Types.ObjectId,
+      }
+    }]
   }
 
 module.exports = new mongoose.Schema(userSchema)

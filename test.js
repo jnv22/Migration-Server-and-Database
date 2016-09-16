@@ -11,8 +11,7 @@ describe('Server and DB Tests', function() {
   var server;
   var app = express()
   var URL_ROOT = 'http://localhost:3000/api/'
-  var birdID;
-
+  var birdLocation;
   before(function() {
     app.use('/api/', api);
     server = app.listen(3000)
@@ -31,6 +30,10 @@ describe('Server and DB Tests', function() {
   })
 
   it('OAUTH to Facebook', function(done) {
+
+    //increase timeout due to occ slow connection w/facebook
+    this.timeout(5000);
+
     var url = 'https://graph.facebook.com/' +
       config.FacebookAppId + '?access_token=' +
       config.FacebookAppId + '|' +
@@ -44,47 +47,40 @@ describe('Server and DB Tests', function() {
       assert.doesNotThrow(function() {
         result = JSON.parse(res.text);
       });
-
-    assert.equal(result.id, config.FacebookAppId);
-    done();
+      assert.equal(result.id, config.FacebookAppId);
+      done();
+    })
   })
-})
 
   it('GET location/:city endpoint', function(done) {
     superagent
     .get(URL_ROOT + "location/city/Burling")
     .end(function(err, res) {
       assert.ifError(err)
+      birdLocation = res.body.result[0]._id
       assert.ok(res)
-      assert.strictEqual(res.body.length, 2)
+      assert.strictEqual(res.body.result.length, 38)
       done()
     })
   })
 
-  it('GET location/:province endpoint', function(done) {
+  it('GET location/:state endpoint', function(done) {
     superagent
-    .get(URL_ROOT + "location/province/Ver")
+    .get(URL_ROOT + "location/state/VT")
     .end(function(err, res) {
       assert.ifError(err)
       assert.ok(res)
-      assert.strictEqual(res.body.length, 17)
+      assert.strictEqual(res.body.result.length, 308)
       done()
     })
   })
 
-  it('POST to bird endpoint', function(done) {
+  it('POST to bird/ endpoint', function(done) {
     var birdData = {
       ts: Date.now(),
       species: "Canadian Goose",
       quantity: 3,
-      location: {
-        city: "Austin",
-        lat: 30.267,
-        lon: 97.74,
-        country: "USA",
-        province: "TX",
-        location_name: "Airport"
-      }
+      location: birdLocation
     }
     superagent
     .post(URL_ROOT + "birds")
@@ -92,17 +88,6 @@ describe('Server and DB Tests', function() {
     .end(function(err, res) {
       assert.ifError(err)
       assert.ok(res)
-      done()
-    })
-  })
-
-  it('GET bird/ endpoint', function(done) {
-    superagent
-    .get(URL_ROOT + "birds")
-    .end(function(err, res) {
-      assert.ifError(err)
-      assert.ok(res)
-      birdID = res.body.result[0]._id
       done()
     })
   })
@@ -120,33 +105,40 @@ describe('Server and DB Tests', function() {
 
     var Users = new model.Users(user)
     Users.save(function(err, usr) {
-      console.log(err, usr)
       assert.ok(usr)
       assert.ifError(err)
       done()
     })
   })
 
-  it('update new user and give them a bird using /user endpoint', function(done) {
-    model.Users.findOne({}, function(err, user) {
-      user.birds = [{birds: birdID}]
-      user.save(function(err, res) {
-        console.log(err, res)
-        assert.ok(res)
-        assert.ifError(err)
-        done()
-    })
-  })
-})
-
-  it('GET user/ endpoint', function(done) {
+  it('GET bird/ endpoint and update users', function(done) {
     superagent
-    .get(URL_ROOT + "user")
+    .get(URL_ROOT + "birds")
     .end(function(err, res) {
-      console.log(res.body)
       assert.ifError(err)
       assert.ok(res)
-      done()
+      model.Users.findOne({}, function(err, user) {
+        user.birds = [{bird: res.body.result[0]._id}]
+        user.save(function(err, usr) {
+          assert.ok(usr)
+          assert.ifError(err)
+          assert.strictEqual(usr.birds.length, 1)
+          done()
+        })
+      })
+    })
+  })
+
+
+  it('populate birds in user db', function(done) {
+    model.Users.findOne({}, function(err, usr) {
+      usr.populate({path: 'birds.bird', model: 'Birds'}, function(err, usr) {
+        var user = usr;
+        assert.ok(user)
+        assert.isObject(user.birds[0].bird)
+        assert.ifError(err)
+        done()
+      })
     })
   })
 })

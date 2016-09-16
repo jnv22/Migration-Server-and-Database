@@ -23,7 +23,6 @@ module.exports = function(app, model) {
     },
     function(accessToken, refreshToken, profile, cb) {
       if (!profile.emails || !profile.emails.length) return done('No account associated with email')
-      console.log(profile)
       User.findOneAndUpdate(
         {"profile.oauth" : profile.id},
         {
@@ -54,7 +53,6 @@ module.exports = function(app, model) {
       failureRedirect: '/login'
     }),
     function(req, res) {
-      console.log(req.user, "USER")
       res.send('Welcome, ' + req.user.profile.fullName);
-  })
+    })
 }

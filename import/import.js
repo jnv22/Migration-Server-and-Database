@@ -1,13 +1,13 @@
-var Model = require('../model')
+var Locations = require('../model').Locations
 var Converter = require("csvtojson").Converter;
 var converter = new Converter({});
 
 converter.on("end_parsed", function (jsonArray) {
-  Model.Location.collection.insert(jsonArray, function(err, docs) {
+  Locations.collection.insert(jsonArray, function(err, docs) {
     console.log(err, docs)
     process.exit()
   })
 });
 
 //read from file
-require("fs").createReadStream("./world_cities.csv").pipe(converter);
+require("fs").createReadStream("./US.csv").pipe(converter);

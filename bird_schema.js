@@ -15,7 +15,7 @@ ts: {
     type: Number,
     required: true
   },
-  location: locationSchema
+  location: mongoose.Schema.Types.ObjectId
 }
 
 

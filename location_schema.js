@@ -1,7 +1,19 @@
 var mongoose = require('mongoose')
 
 var locationSchema = {
+  country: {
+    type: String,
+    required: true
+  },
+  zipcode: {
+    type: Number,
+    required: true
+  },
   city: {
+    type: String,
+    required: true
+  },
+  state: {
     type: String,
     required: true
   },
@@ -11,14 +23,6 @@ var locationSchema = {
   },
   lon: {
     type: Number,
-    required: true
-  },
-  country: {
-    type: String,
-    required: true
-  },
-  province: {
-    type: String,
     required: true
   },
   location_name: {
