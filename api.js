@@ -4,9 +4,33 @@ module.exports = function(express, model) {
   var api = express.Router()
   var locationModel = model.Location
   var birdModel = model.Birds
+  var userModel = model.Users
   api.use(bodyparser.json())
 
-  api.get('/location/', function(req, res) {
+
+  api.get('/user', function(req, res) {
+    userModel.find({}, function(err, usr) {
+      res.json({result: usr})
+    })
+  })
+
+  api.put('/user', function(req, res) {
+    try {
+      var birds = req.body.data.birds;
+    } catch(e) {
+        res.status(500).json({ error: 'No birds specified!' });
+    }
+    req.user.birds = birds
+    req.user.save(function(err, user) {
+      if (error) {
+        return res.
+          status(400).json({ error: error.toString() });
+      }
+      return res.json({ user: user });
+    })
+  })
+
+  api.get('/location', function(req, res) {
     locationModel.find({}, '-_id', function(err, doc) {
       res.json(doc)
     })

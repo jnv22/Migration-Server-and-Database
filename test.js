@@ -5,16 +5,23 @@ var superagent = require('superagent')
 var mongoose = require('mongoose')
 var model = require('./Model')
 var api = require('./api')(express, model)
+var config = require('./config')
 
 describe('Server and DB Tests', function() {
   var server;
   var app = express()
   var URL_ROOT = 'http://localhost:3000/api/'
+  var birdID;
 
   before(function() {
     app.use('/api/', api);
     server = app.listen(3000)
-    model.Birds.remove({})
+    model.Birds.remove({}, function(error) {
+      assert.ifError(error);
+      model.Users.remove({}, function(error) {
+        assert.ifError(error);
+      });
+    });
     console.log('Listening on port 3000')
   })
 
@@ -22,6 +29,26 @@ describe('Server and DB Tests', function() {
     server.close()
     mongoose.connection.close()
   })
+
+  it('OAUTH to Facebook', function(done) {
+    var url = 'https://graph.facebook.com/' +
+      config.FacebookAppId + '?access_token=' +
+      config.FacebookAppId + '|' +
+      config.FacebookAppSecretKey
+
+    superagent.get(url, function(error, res) {
+      if (error) {
+        return done(error);
+      }
+      var result;
+      assert.doesNotThrow(function() {
+        result = JSON.parse(res.text);
+      });
+
+    assert.equal(result.id, config.FacebookAppId);
+    done();
+  })
+})
 
   it('GET location/:city endpoint', function(done) {
     superagent
@@ -65,7 +92,6 @@ describe('Server and DB Tests', function() {
     .end(function(err, res) {
       assert.ifError(err)
       assert.ok(res)
-      console.log(res.body)
       done()
     })
   })
@@ -76,7 +102,50 @@ describe('Server and DB Tests', function() {
     .end(function(err, res) {
       assert.ifError(err)
       assert.ok(res)
+      birdID = res.body.result[0]._id
+      done()
+    })
+  })
+
+  it('create new user', function(done) {
+    var user = {
+      profile: {
+        username: 'hi@jordanvartanian.com',
+        fullName: 'Jordan Vartanian',
+        picture: 'http://avatars1.githubusercontent.com/u/12191724?v=3&s=460',
+        oauth: 'notavalidstring'
+      },
+      birds: []
+    }
+
+    var Users = new model.Users(user)
+    Users.save(function(err, usr) {
+      console.log(err, usr)
+      assert.ok(usr)
+      assert.ifError(err)
+      done()
+    })
+  })
+
+  it('update new user and give them a bird using /user endpoint', function(done) {
+    model.Users.findOne({}, function(err, user) {
+      user.birds = [{birds: birdID}]
+      user.save(function(err, res) {
+        console.log(err, res)
+        assert.ok(res)
+        assert.ifError(err)
+        done()
+    })
+  })
+})
+
+  it('GET user/ endpoint', function(done) {
+    superagent
+    .get(URL_ROOT + "user")
+    .end(function(err, res) {
       console.log(res.body)
+      assert.ifError(err)
+      assert.ok(res)
       done()
     })
   })

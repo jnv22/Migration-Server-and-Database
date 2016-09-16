@@ -1,24 +1,23 @@
-var locationSchema = require("./location_Schema").locationSchema
+var locationSchema = require("./location_schema").locationSchema
+var mongoose = require('mongoose')
 
-module.exports = function(mongoose) {
-  var birdSchema = {
-    ts: {
-      type: String,
-      timestamps: true,
-      required: true
-    },
-    species: {
-      type: String,
-      required: true
-    },
-    quantity: {
-      type: Number,
-      required: true
-    },
-    location: locationSchema,
-  };
-
-  var schema = new mongoose.Schema(birdSchema);
-
-  return schema
+var birdSchema = {
+ts: {
+    type: String,
+    timestamps: true,
+    required: true
+  },
+  species: {
+    type: String,
+    required: true
+  },
+  quantity: {
+    type: Number,
+    required: true
+  },
+  location: locationSchema
 }
+
+
+module.exports = new mongoose.Schema(birdSchema)
+module.exports.birdSchema = birdSchema
