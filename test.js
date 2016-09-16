@@ -59,7 +59,7 @@ describe('Server and DB Tests', function() {
       assert.ifError(err)
       birdLocation = res.body.result[0]._id
       assert.ok(res)
-      assert.strictEqual(res.body.result.length, 38)
+      assert.strictEqual(res.body.result.length, 34)
       done()
     })
   })

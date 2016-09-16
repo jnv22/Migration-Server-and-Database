@@ -45,8 +45,6 @@ module.exports = function(express, model) {
   })
 
   api.get('/location/city/:city', function(req, res) {
-    console.log(req.params.city.toUpperCase())
-
     Locations.find({"city": {'$regex': "^" + req.params.city}}, function(err, doc) {
       if(err) res.status(500).json({result: 'DB Error'})
       else res.json({result: doc})
@@ -62,7 +60,6 @@ module.exports = function(express, model) {
   })
 
   api.get('/location/state/:state', function(req, res) {
-    console.log(req.params.state.toUpperCase())
     Locations.find({"state": {'$regex': "^" + req.params.state}}, function(err, doc) {
       if(err) res.status(500).json({result: 'DB Error'})
       else res.json({result: doc})
