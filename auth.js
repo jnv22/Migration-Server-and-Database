@@ -2,6 +2,7 @@ var passport = require('passport')
 var FacebookStrategy = require('passport-facebook')
 var Config = require('./config')
 var session = require('express-session')
+var ENV = require('./env')
 
 module.exports = function(app, model) {
   var User = model.Users
@@ -18,7 +19,7 @@ module.exports = function(app, model) {
   passport.use(new FacebookStrategy({
     clientID: Config.FacebookAppId,
     clientSecret: Config.FacebookAppSecretKey,
-    callbackURL: "http://localhost:3000/api/auth/facebook/success",
+    callbackURL: ENV.ROOT + ":3000/api/auth/facebook/success",
     profileFields: ['id', 'displayName', 'emails', 'name']
     },
     function(accessToken, refreshToken, profile, cb) {
@@ -28,7 +29,7 @@ module.exports = function(app, model) {
         {
           $set: {
             'profile.fullName': profile.displayName,
-            'profile.username': profile.emails[0].value,
+            'profile.email': profile.emails[0].value,
             'profile.picture': 'http://graph.facebook.com/' +
               profile.id.toString() + '/picture?type=large'
           }
@@ -39,8 +40,18 @@ module.exports = function(app, model) {
       })
     }
   ))
+  app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", ENV.ROOT)
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next()
+  })
+
   app.use(session({
-    secret: 'this is a secret'
+    secret: 'this is a secret',
+    cookie : {
+      maxAge: 1000000
+    }
   }))
   app.use(passport.initialize())
   app.use(passport.session())
@@ -50,9 +61,15 @@ module.exports = function(app, model) {
 
   app.get('/api/auth/facebook/success',
     passport.authenticate('facebook', {
-      failureRedirect: '/login'
+      successRedirect: ENV.ROOT + ':8080/',
+      failureRedirect: ENV.ROOT + ':8080/',
+      session: true
     }),
     function(req, res) {
-      res.send('Welcome, ' + req.user.profile.fullName);
+      req.session.save(function (err) {
+        if (err) {
+          console.log(err)
+        }
+      })
     })
 }

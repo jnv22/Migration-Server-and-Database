@@ -30,5 +30,9 @@ var locationSchema = {
   }
 };
 
-module.exports = new mongoose.Schema(locationSchema);
+
+var schema = new mongoose.Schema(locationSchema);
+schema.index({city: 'text'}, {state: 'text'});
+
+module.exports = schema;
 module.exports.locationSchema = locationSchema;

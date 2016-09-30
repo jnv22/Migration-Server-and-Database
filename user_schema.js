@@ -1,9 +1,8 @@
 var mongoose = require('mongoose')
-var birdSchema = require('./bird_schema').birdSchema
 
   var userSchema = {
     profile: {
-      username: {
+      email: {
         type: String,
         required: true,
         lowercase: true
@@ -22,9 +21,7 @@ var birdSchema = require('./bird_schema').birdSchema
       }
     },
     birds: [{
-      bird: {
         type: mongoose.Schema.Types.ObjectId,
-      }
     }]
   }
 

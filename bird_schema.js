@@ -3,7 +3,7 @@ var mongoose = require('mongoose')
 
 var birdSchema = {
 ts: {
-    type: String,
+    type: Number,
     timestamps: true,
     required: true
   },

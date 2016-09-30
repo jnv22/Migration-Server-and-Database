@@ -1,4 +1,5 @@
 var bodyparser = require('body-parser')
+var ENV = require('./env')
 
 module.exports = function(express, model) {
   var api = express.Router()
@@ -7,24 +8,30 @@ module.exports = function(express, model) {
   var Users = model.Users
 
   api.use(bodyparser.json())
+  api.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", ENV.ROOT)
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    res.header("Access-Control-Allow-Credentials", true)
+    next()
+  })
+
+  api.head('/user', function(req, res) {
+    if (req.user === undefined) res.status(401).send()
+    else res.status(200).send()
+  })
 
   api.get('/user', function(req, res) {
-    Users.findOne({}, function(err, usr) {
-      if(usr) {
-        usr.populate({path: 'birds.bird', model: 'Birds'}, function(err, usr) {
-          console.log( usr.birds[0].bird, "WITH BIRDS")
-          res.json(usr)
-        })
-      }
-      else res.status(400).json({ error: 'User Does Not Exist' });
-
-    // TODO: uncomment out when running on broswer, and cookie auth is available
-    // req.user.populate({path: 'birds.bird', model: 'Birds'}, function(err, user) {
-    // console.log( usr.birds[0].bird, "WITH BIRDS")
-    // res.json(usr)
-    // })
-
-    })
+    if (!req.user) return res.status(401).json({status: "Not logged in"})
+    Users.findOne({'_id': req.user._id})
+     .populate({path: 'birds', model: 'Birds'})
+     .exec(function(err, user) {
+       if (err) return res.json(500);
+       Users.populate(user, {path: 'birds.location', model: 'Location'}, function (err, birds) {
+         console.log(birds)
+         res.json(birds);
+       });
+     });
   })
 
   api.put('/user', function(req, res) {
@@ -38,16 +45,59 @@ module.exports = function(express, model) {
     })
   })
 
-  api.get('/location', function(req, res) {
-    Locations.find({}, '-_id', function(err, doc) {
-      res.json(doc)
+  api.get('/location/:location', function(req, res) {
+
+  Locations
+    .find(findLocation())
+    .limit(10)
+    .exec(
+      function(err, doc) {
+        if(err) res.status(500).json({result: 'DB Error'})
+        else res.json({result: doc})
     })
+
+    function findLocation() {
+      var location = req.params.location
+      var locationArray = location.split(" ")
+      var capitolizeLocation = captitolize(locationArray)
+      var city = capitolizeLocation.join(' ')
+
+      if (locationArray.length > 1) {
+        return getCityandState(capitolizeLocation, city)
+      }
+      else {
+        return {"city": {'$regex': "^" + city}}
+      }
+    }
+
+    function getCityandState(capitolizeLocation, city) {
+      var state = capitolizeLocation.slice(-1).join('')
+      if (state.length < 3) {
+        state = capitolizeLocation.splice(-1, 1).join('')
+        city = capitolizeLocation.join(' ')
+        return {"city": {'$regex': "^" + city}, "state": {'$regex': "^" + state.toUpperCase()}}
+      }
+      else {
+        return {"city": {'$regex': "^" + city}}
+      }
+    }
+
+    function captitolize(locationArray) {
+      var newLocationArray = []
+      locationArray.map(function(location) {
+        newLocationArray.push(location.charAt(0).toUpperCase() + location.substr(1))
+      })
+      return newLocationArray
+    }
   })
 
   api.get('/location/city/:city', function(req, res) {
-    Locations.find({"city": {'$regex': "^" + req.params.city}}, function(err, doc) {
-      if(err) res.status(500).json({result: 'DB Error'})
-      else res.json({result: doc})
+    Locations.find({"city": {'$regex': "^" + req.params.city}})
+    .limit(30)
+    .exec(
+      function(err, doc) {
+        if(err) res.status(500).json({result: 'DB Error'})
+        else res.json({result: doc})
     })
   })
 
@@ -79,11 +129,45 @@ module.exports = function(express, model) {
     var Bird = new Birds(req.body)
     Bird.save(function(err, bird) {
       bird.populate({path:'location', model: 'Location'}, function(err, succ) {
-        if(err) res.status(500).json({result: 'DB Error'})
-        else res.json({result:succ})
+        if (err) res.status(500).json({result: 'DB Error'})
+        else {
+          if (req.user !== undefined) {
+            Users.findByIdAndUpdate(
+              req.user._id,
+              {
+                $push: {'birds': bird._id}
+              },
+              {safe: true, upsert: true, new : true},
+            function(err, suc) {
+              succ.populate({path: 'birds', model: 'Birds'}, function(er, populatedBirds) {
+                console.log(er, populatedBirds, "POPULATED BIRDS")
+                res.status(200).json({
+                  result: {
+                    bird: succ,
+                    user: populatedBirds
+                  }
+                })
+              })
+            })
+          }
+
+          else {
+            res.status(200).json({
+              result: {
+                bird: succ,
+                user: {}
+              }
+            })
+          }
+        }
       })
     })
   })
+
+  api.get('/logout', function(req, res) {
+        req.logout();
+        res.redirect('/');
+    });
 
   return api
 }

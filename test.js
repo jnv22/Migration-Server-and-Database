@@ -52,14 +52,14 @@ describe('Server and DB Tests', function() {
     })
   })
 
-  it('GET location/:city endpoint', function(done) {
+  it('GET location/:location endpoint', function(done) {
     superagent
-    .get(URL_ROOT + "location/city/Burling")
+    .get(URL_ROOT + "location/Burlington")
     .end(function(err, res) {
       assert.ifError(err)
-      birdLocation = res.body.result[0]._id
+      birdLocation = res.body.result[5]._id
       assert.ok(res)
-      assert.strictEqual(res.body.result.length, 34)
+      assert.strictEqual(res.body.result.length, 10)
       done()
     })
   })
@@ -82,6 +82,8 @@ describe('Server and DB Tests', function() {
       quantity: 3,
       location: birdLocation
     }
+
+
     superagent
     .post(URL_ROOT + "birds")
     .send(birdData)
@@ -95,7 +97,7 @@ describe('Server and DB Tests', function() {
   it('create new user', function(done) {
     var user = {
       profile: {
-        username: 'hi@jordanvartanian.com',
+        email: 'hi@jordanvartanian.com',
         fullName: 'Jordan Vartanian',
         picture: 'http://avatars1.githubusercontent.com/u/12191724?v=3&s=460',
         oauth: 'notavalidstring'
