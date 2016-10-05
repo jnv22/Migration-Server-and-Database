@@ -1,3 +1,4 @@
 module.exports = {
-  ROOT: 'http://localhost'
+  ROOT: 'http://localhost',
+  PORT: ':8080'
 }

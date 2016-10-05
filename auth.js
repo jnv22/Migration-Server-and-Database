@@ -67,8 +67,8 @@ module.exports = function(app, model) {
 
   app.get('/api/auth/facebook/success',
     passport.authenticate('facebook', {
-      successRedirect: ENV.ROOT + ':8080/',
-      failureRedirect: ENV.ROOT + ':8080/',
+      successRedirect: ENV.ROOT + ENV.PORT,
+      failureRedirect: ENV.ROOT + ENV.PORT,
       session: true
     }),
     function(req, res) {
