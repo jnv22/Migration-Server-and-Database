@@ -4,6 +4,9 @@ var Config = require('./config')
 var session = require('express-session')
 var ENV = require('./env')
 
+const mongoose = require('mongoose')
+const MongoStore = require('connect-mongo')(session);
+
 module.exports = function(app, model) {
   var User = model.Users
 
@@ -23,13 +26,15 @@ module.exports = function(app, model) {
     profileFields: ['id', 'displayName', 'emails', 'name']
     },
     function(accessToken, refreshToken, profile, cb) {
-      if (!profile.emails || !profile.emails.length) return done('No account associated with email')
+      if (!profile.displayName || !profile.displayName.length) return done('No account associated with email')
+
+      var email = (profile.emails !== undefined ? profile.emails[0].value : undefined)
       User.findOneAndUpdate(
         {"profile.oauth" : profile.id},
         {
           $set: {
             'profile.fullName': profile.displayName,
-            'profile.email': profile.emails[0].value,
+            'profile.email': email,
             'profile.picture': 'http://graph.facebook.com/' +
               profile.id.toString() + '/picture?type=large'
           }
@@ -49,6 +54,7 @@ module.exports = function(app, model) {
 
   app.use(session({
     secret: 'this is a secret',
+    store: new MongoStore({mongooseConnection: mongoose.connection}),
     cookie : {
       maxAge: 1000000
     }
@@ -67,9 +73,7 @@ module.exports = function(app, model) {
     }),
     function(req, res) {
       req.session.save(function (err) {
-        if (err) {
-          console.log(err)
-        }
+        if (err) return res.status(500)
       })
     })
 }

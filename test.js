@@ -31,7 +31,7 @@ describe('Server and DB Tests', function() {
 
   it('OAUTH to Facebook', function(done) {
 
-    //increase timeout due to occ slow connection w/facebook
+    //increase timeout due to occasionally slow connection w/facebook
     this.timeout(5000);
 
     var url = 'https://graph.facebook.com/' +
@@ -52,28 +52,28 @@ describe('Server and DB Tests', function() {
     })
   })
 
-  it('GET location/:location endpoint', function(done) {
+  it('GET location/:location endpoint CITY', function(done) {
     superagent
     .get(URL_ROOT + "location/Burlington")
     .end(function(err, res) {
       assert.ifError(err)
-      birdLocation = res.body.result[5]._id
       assert.ok(res)
       assert.strictEqual(res.body.result.length, 10)
       done()
     })
   })
 
-  it('GET location/:state endpoint', function(done) {
+  it('GET location/:location endpoint CITY & STATE', function(done) {
     superagent
-    .get(URL_ROOT + "location/state/VT")
+    .get(URL_ROOT + "location/Burlington%20vt")
     .end(function(err, res) {
       assert.ifError(err)
       assert.ok(res)
-      assert.strictEqual(res.body.result.length, 308)
+      assert.strictEqual(res.body.result.length, 5)
       done()
     })
   })
+
 
   it('POST to bird/ endpoint', function(done) {
     var birdData = {
@@ -82,8 +82,6 @@ describe('Server and DB Tests', function() {
       quantity: 3,
       location: birdLocation
     }
-
-
     superagent
     .post(URL_ROOT + "birds")
     .send(birdData)
@@ -104,43 +102,11 @@ describe('Server and DB Tests', function() {
       },
       birds: []
     }
-
     var Users = new model.Users(user)
     Users.save(function(err, usr) {
       assert.ok(usr)
       assert.ifError(err)
       done()
-    })
-  })
-
-  it('GET bird/ endpoint and update users', function(done) {
-    superagent
-    .get(URL_ROOT + "birds")
-    .end(function(err, res) {
-      assert.ifError(err)
-      assert.ok(res)
-      model.Users.findOne({}, function(err, user) {
-        user.birds = [{bird: res.body.result[0]._id}]
-        user.save(function(err, usr) {
-          assert.ok(usr)
-          assert.ifError(err)
-          assert.strictEqual(usr.birds.length, 1)
-          done()
-        })
-      })
-    })
-  })
-
-
-  it('populate birds in user db', function(done) {
-    model.Users.findOne({}, function(err, usr) {
-      usr.populate({path: 'birds.bird', model: 'Birds'}, function(err, usr) {
-        var user = usr;
-        assert.ok(user)
-        assert.isObject(user.birds[0].bird)
-        assert.ifError(err)
-        done()
-      })
     })
   })
 })

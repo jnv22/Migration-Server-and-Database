@@ -4,7 +4,6 @@ var mongoose = require('mongoose')
     profile: {
       email: {
         type: String,
-        required: true,
         lowercase: true
       },
       fullName: {

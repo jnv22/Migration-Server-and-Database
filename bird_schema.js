@@ -2,7 +2,7 @@ var locationSchema = require("./location_schema").locationSchema
 var mongoose = require('mongoose')
 
 var birdSchema = {
-ts: {
+  ts: {
     type: Number,
     timestamps: true,
     required: true
@@ -17,7 +17,6 @@ ts: {
   },
   location: mongoose.Schema.Types.ObjectId
 }
-
 
 module.exports = new mongoose.Schema(birdSchema)
 module.exports.birdSchema = birdSchema
