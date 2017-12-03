@@ -1,10 +1,13 @@
-var express = require('express')
-var model = require('./model.js')
-var api = require('./api')(express, model)
-var app = express();
-require('./auth')(app, model)
+require('dotenv').config();
 
-app.use('/api/', api)
+const express = require('express');
+const model = require('./database/model.js');
+const api = require('./app/api')(express, model);
+const app = express();
 
-app.listen(3000)
-console.log('Listening on port 3000')
+require('./app/auth')(app, model);
+
+app.use('/api/v2/', api);
+
+app.listen(3000);
+console.log('Listening on port 3000');
