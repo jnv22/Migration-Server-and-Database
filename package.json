@@ -5,28 +5,35 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha test.js",
-    "server": "gulp watch"
+    "db-build": "node database/setup/build",
+    "db-purge": "node database/setup/remove",
+    "watch": "nodemon index.js --exec babel-node",
+    "build": "babel lib -d dist",
+    "serve": "node dist/index.js"
   },
   "author": "jordan consttanian",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.2",
-    "connect-mongo": "^1.3.2",
+    "connect-mongo": "^2.0.1",
+    "csvtojson": "^1.0.2",
     "dotenv": "^4.0.0",
     "express": "^4.14.0",
     "express-session": "^1.14.1",
-    "mongoose": "^4.6.0",
+    "mongoose": "^4.13.9",
     "passport": "^0.3.2",
     "passport-facebook": "^2.1.1"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
     "chai": "^3.5.0",
-    "csvtojson": "^1.0.2",
-    "eslint": "^4.12.1",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-express": "^0.3.5",
-    "gulp-mocha": "^3.0.1",
+    "gulp-nodemon": "^2.2.1",
     "superagent": "^2.2.0"
   }
 }

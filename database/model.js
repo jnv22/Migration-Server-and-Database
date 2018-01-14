@@ -11,9 +11,9 @@ const Birds = mongoose.model('Birds', birdSchema, 'birds');
 const Users = mongoose.model('User', userSchema, 'user');
 
 const models = {
-	Locations: Locations,
-	Birds: Birds,
-	Users: Users
+  Locations,
+  Birds,
+  Users,
 };
 
 module.exports = models;
