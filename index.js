@@ -1,17 +1,25 @@
-import dotenv from 'dotenv';
+const dotenv = require('dotenv');
 dotenv.config();
 
-console.log(process.env.BASE_URL)
-import express from 'express';
-import auth from './app/auth';
-import model from './database/model';
-import api from './app/api';
+const bodyparser = require('body-parser');
+const express = require('express');
+const auth = require('./routes/auth');
+const api = require('./routes/api');
+const user = require('./routes/user');
 
 const app = express();
 
-auth(app, model);
+api.use(bodyparser.json());
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', `${process.env.BASE_URL}${process.env.PORT}`);
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
 
-app.use('/api/v2/', api)(express, model);
+app.use('/api/v2/', api);
+app.use('/api/v2/auth', auth);
+app.use('/api/v2/user', user)
 
-app.listen(3000);
-console.log('Listening on port 3000');
+app.listen(3001);
+console.log('Listening on port 3001');
