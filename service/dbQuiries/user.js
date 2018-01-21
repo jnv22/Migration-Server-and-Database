@@ -1,9 +1,9 @@
 const model = require('../../database/model');
 
-const { Birds, Locations, Users } = model;
+const { Users } = model;
 
 
-const createUser = ({profile, email}) => 
+const create = ({ profile, email }) =>
   Users
     .findOneAndUpdate(
       { 'profile.oauth': profile.id },
@@ -19,28 +19,37 @@ const createUser = ({profile, email}) =>
     )
     .exec();
 
-const getUser = ({userId}) =>
-  Users.findById(userId)
-    .populate({ path: 'birds', model: 'Birds' })
-    .exec((err, user) => {
-      if (user) return user;
-      return err;
-    });
 
-const findById = ({userId}) => Users
-  .findOne({_id: userId})
+const get = id => Users
+  .findOne({ _id: id })
   .exec();
-    
 
-const populateBirds = () => {
-  Users.populate(user, { path: 'birds.location', model: 'Location' }, (err, birds) => {
-    res.json(birds);
-  });
-}
+const isLoggedIn = user => (bird, err) => {
+  if (err) throw err;
+
+  if (user === undefined) {
+    return {
+      bird,
+      user: {},
+    };
+  }
+  _associateBirdToUser(user, bird);
+};
+
+const _associateBirdToUser = (user, bird) => {
+  Users.findByIdAndUpdate(
+    user._id,
+    { $push: { birds: bird._id } },
+    { safe: true, upsert: true, new: true },
+    (err, suc) => bird.populate({ path: 'birds', model: 'Birds' }, (er, birdWithUser) => ({
+      bird,
+      user: birdWithUser,
+    })),
+  );
+};
 
 module.exports = {
-  createUser,
-  getUser,
-  populateBirds,
-  findById
-}
+  create,
+  get,
+  isLoggedIn,
+};

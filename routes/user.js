@@ -1,26 +1,27 @@
 const express = require('express');
 
-const router = express.Router();
+const app = express.Router();
+
+const dbQuiries = require('../service/dbQuiries/');
+
+const { user, populateResult } = dbQuiries;
 
 
-router.head('/', (req, res) => {
-  if (req.user === undefined) return res.status(401).send();
-  res.status(200).send();
+app.head('/', (req, res) => (
+  (req.user === undefined) ? res.status(401).send() : res.status(200).send()
+));
+
+app.get('/', (req, res) => {
+  user
+    .get(req.user._id)
+    .then(populateResult('birds'))
+    .then((response) => {
+      res.type('json');
+      res.status(200);
+      res.send(response);
+    })
+    .catch(() => res.status(401).json({ status: 'Not logged in' }));
 });
 
-router.get('/', (req, res) => {
-  if (!req.user) return res.status(401).json({ status: 'Not logged in' });
-  const user = dbQuiries.getUser(req.user._id);
-  console.log(user);
-});
 
-router.put('/', (req, res) => {
-  if (req.body.data.birds) req.user.birds = req.body.data.birds;
-  req.user.save((err, user) => {
-    if (error) return res.status(500).json({ error: 'Unable to Save' });
-    res.json({ user });
-  });
-});
-
-
-module.exports = router;
+module.exports = app;

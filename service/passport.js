@@ -1,13 +1,16 @@
-let passport = require('passport');
+const passport = require('passport');
 const FacebookStrategy = require('passport-facebook');
 
-const userQuery = require("./dbQuiries/user");
+const dbQuiries = require('./dbQuiries/');
+
+const { user } = dbQuiries;
 
 passport.serializeUser((user, done) => done(null, user.id));
 
-passport.deserializeUser((id, done) => userQuery
-  .findById({ userId: id })
-  .then((res, err) => done(err, res)))
+passport.deserializeUser((id, done) =>
+  user
+    .get(id)
+    .then((res, err) => done(err, res)));
 
 passport.use(new FacebookStrategy(
   {
@@ -20,9 +23,7 @@ passport.use(new FacebookStrategy(
     if (!profile.displayName || !profile.displayName.length) return cb('No account associated with email');
 
     const email = (profile.emails !== undefined ? profile.emails[0].value : undefined);
-    return userQuery.createUser({ profile, email }).then((res, err) => {
-      return cb(err, res)
-    })
+    return user.createUser({ profile, email }).then((res, err) => cb(err, res));
   }),
 ));
 
