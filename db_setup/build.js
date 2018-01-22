@@ -1,4 +1,4 @@
-const { Locations } = require('../model');
+const { Locations } = require('../app/database/model');
 const { Converter } = require('csvtojson');
 
 const converter = new Converter({});
@@ -11,4 +11,4 @@ converter.on('end_parsed', (jsonArray) => {
 });
 
 // read from file
-require('fs').createReadStream('database/setup/US.csv').pipe(converter);
+require('fs').createReadStream('db_setup/US.csv').pipe(converter);

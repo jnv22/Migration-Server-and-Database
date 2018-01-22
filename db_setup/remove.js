@@ -1,4 +1,4 @@
-const Model = require('../model');
+const Model = require('../app/database/model');
 
 const modelLength = Object.keys(Model).length;
 let count = 0;

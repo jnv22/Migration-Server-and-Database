@@ -3,7 +3,11 @@
   "env": {
     "node": true
   },
+  "plugins": [
+    "mocha"
+  ],
   "rules": {
-    "no-underscore-dangle": 0
+    "no-underscore-dangle": 0,
+    "mocha/no-exclusive-tests": "error"
   }
 }

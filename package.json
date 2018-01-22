@@ -1,14 +1,15 @@
 {
   "name": "bird-id-app",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test.js",
-    "db-build": "node database/setup/build",
-    "db-purge": "node database/setup/remove",
-    "watch": "nodemon index.js --exec babel-node",
-    "build": "babel lib -d dist --presets es2015,stage-2",
+    "test": "mocha test/server.test.js",
+    "db-build": "node db_setup/build",
+    "db-purge": "node db_setup/remove",
+    "db-rebuild": "npm run db-purge && npm run db-build",
+    "watch": "nodemon app/index.js --exec babel-node",
+    "build": "babel app -d dist --presets es2015,stage-2",
     "serve": "node dist/index.js"
   },
   "author": "Jordan Vartanian",
@@ -33,6 +34,7 @@
     "eslint": "^4.16.0",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-mocha": "^4.11.0",
     "nodemon": "^1.14.11",
     "superagent": "^2.2.0"
   }
