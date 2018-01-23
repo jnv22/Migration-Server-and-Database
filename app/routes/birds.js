@@ -21,7 +21,7 @@ app.post('/', (req, res) =>
     .then(user.isLoggedIn(req.user))
     .then((bird) => {
       res.type('json');
-      res.status(200);
+      res.status(201);
       res.send(bird);
     })
     .catch(e => res.status(500).send()));
